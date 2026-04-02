@@ -2,4 +2,5 @@ outfile
 *.o
 pipeit
 .DS_Store
+*.jpg
 jlu97.jpg
