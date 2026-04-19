@@ -1,0 +1,18 @@
+Name: Julia Lu (jlu97)
+
+Special instructions:
+
+I added a bunch of debug messages but disabled them by default.
+To enable them, build with the debug target in the Makefile. 
+Enabling them slowed down the programs, like the snake demos, a lot.
+
+Other things: 
+Since the pdf isn't very clear on what to do if system calls fail
+for internal helper functions, I chose to treat it as fatal and
+exit the whole program.
+
+I changed the include for fp.h from angle brackets to quotes so its
+found during compilation.
+
+
+meow
