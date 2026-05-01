@@ -5,7 +5,7 @@ CFLAGS = -Wall -g -fPIC -m64 -I.
 
 OBJS = lwp.o scheduler.o magic64.o
 
-.PHONY: all lwp intel-all clean
+.PHONY: all lwp intel-all debug valgrind clean
 
 all: lwp
 
@@ -50,6 +50,9 @@ magic6464.o: magic64.S lwp.h fp.h
 debug:
 	$(MAKE) clean
 	$(MAKE) CFLAGS='-Wall -g -fPIC -m64 -I. -DLWP_DEBUG'
+
+valgrind: liblwp.so
+	LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all $(RUN)
 
 clean:
 	rm -f $(OBJS) lwp64.o scheduler64.o magic6464.o

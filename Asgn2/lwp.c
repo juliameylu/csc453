@@ -272,6 +272,7 @@ void lwp_yield(void)
                 );
                 return;
         } else if (curr_thread != NULL && next_thread == NULL) {
+                int exit_status;
                 /* if no next thread, check if calling thread terminated */
                 /* if it didn't */
                 if (!(LWPTERMINATED(curr_thread->status))) {
@@ -282,12 +283,24 @@ void lwp_yield(void)
                         );
                         return;
                 }
+                exit_status = LWPTERMSTAT(curr_thread->status);
+
+                /*
+                 * if the last terminating thread is the converted
+                 * system thread, safe to reap it because
+                 * it does not own an mmap'ed LWP stack.
+                 */
+                if (curr_thread->stack == NULL) {
+                        (void)reap_and_remove(curr_thread, NULL);
+                        curr_thread = NULL;
+                }
+
                 /* if it did, terminate program with extracted exit code */
                 print_custom_debug_msg(
                         "lwp_yield(): current thread terminated, "
                         "no next thread, exiting process\n"
                 );
-                exit(LWPTERMSTAT(curr_thread->status));
+                exit(exit_status);
         } else if (curr_thread == NULL && next_thread != NULL) {
                 /*
                  * Defensive: called before lwp_start and a
