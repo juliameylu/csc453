@@ -45,6 +45,12 @@
 /* printing stuff */
 #define NULL_CHAR_LEN 1
 #define LEADING_SPACE_LEN 1
+#define FIRST_PRINTABLE '!'   /* ASCII 33 */
+#define LAST_PRINTABLE  '~'   /* ASCII 126 */
+#define PRINTABLE_COUNT (LAST_PRINTABLE - FIRST_PRINTABLE + 1)
+#define FIRST_PHIL_LABEL 'A'
+#define FIRST_FORK_LABEL '0'
+
 
 typedef struct philosopherinfo_st {
         pthread_t tid;
@@ -68,5 +74,6 @@ void build_table_border(char *header_border, int header_border_len);
 void print_table_border(char *header_border);
 void print_phil_labels(void);
 void print_table_header(char *header_border);
+char wrapped_label(char start, int index);
 
 #endif

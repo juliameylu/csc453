@@ -15,7 +15,7 @@ const char *column_border_str = "|";
 
 /*
  * Thread body for one philosopher, cycles through eat/think statuses
- * gets and releases forks, prints status changes under the printing 
+ * gets and releases forks, prints status changes under the printing
  * lock
  */
 void *philosopher(void *arg)
@@ -23,19 +23,25 @@ void *philosopher(void *arg)
         philinfo *philosopher_info = (philinfo *) arg;
 
         while (philosopher_info->cycles_left > 0) {
-                if (sem_wait(philosopher_info->printing_lock) == -1) {
-                        fprintf(stderr,
-                                "failed to wait on printing semaphore: %s\n",
-                                strerror(errno));
-                        pthread_exit(THREAD_FAILURE);
-                }
-                philosopher_info->state = CHANGING;
-                print_status_change(philosopher_info->all_philosophers);
-                if (sem_post(philosopher_info->printing_lock) == -1) {
-                        fprintf(stderr,
-                                "failed to post printing semaphore: %s\n",
-                                strerror(errno));
-                        pthread_exit(THREAD_FAILURE);
+
+                /* don't change state/print if alr CHANGING*/
+                if (philosopher_info->state != CHANGING) {
+                        if (sem_wait(philosopher_info->printing_lock) == -1) {
+                                fprintf(stderr,
+                                        "failed to wait on printing "
+                                        "semaphore: %s\n",
+                                        strerror(errno));
+                                pthread_exit(THREAD_FAILURE);
+                        }
+                        philosopher_info->state = CHANGING;
+                        print_status_change(philosopher_info->all_philosophers);
+                        if (sem_post(philosopher_info->printing_lock) == -1) {
+                                fprintf(stderr,
+                                        "failed to post printing "
+                                        "semaphore: %s\n",
+                                        strerror(errno));
+                                pthread_exit(THREAD_FAILURE);
+                        }
                 }
 
                 /* if even */
@@ -142,7 +148,8 @@ void *philosopher(void *arg)
                 /* print */
                 if (sem_wait(philosopher_info->printing_lock) == -1) {
                         fprintf(stderr,
-                                "failed to wait on printing semaphore: %s\n",
+                                "failed to wait on printing "
+                                "semaphore: %s\n",
                                 strerror(errno));
                         pthread_exit(THREAD_FAILURE);
                 }
@@ -150,7 +157,8 @@ void *philosopher(void *arg)
                 print_status_change(philosopher_info->all_philosophers);
                 if (sem_post(philosopher_info->printing_lock) == -1) {
                         fprintf(stderr,
-                                "failed to post printing semaphore: %s\n",
+                                "failed to post printing "
+                                "semaphore: %s\n",
                                 strerror(errno));
                         pthread_exit(THREAD_FAILURE);
                 }
@@ -296,30 +304,36 @@ void print_status_change(philinfo *philosophers)
 
                 if (philosophers[i].holding_left) {
                         int left_fork_index = philosophers[i].left_fork_index;
-                        char left_fork_label = '0' + left_fork_index;
+                        char left_fork_label = wrapped_label(
+                                FIRST_FORK_LABEL,
+                                left_fork_index
+                        );
                         forks_held[left_fork_index] = left_fork_label;
                 }
                 if (philosophers[i].holding_right) {
                         int right_fork_index = philosophers[i].right_fork_index;
-                        char right_fork_label = '0' + right_fork_index;
+                        char right_fork_label = wrapped_label(
+                                FIRST_FORK_LABEL,
+                                right_fork_index
+                        );
                         forks_held[right_fork_index] = right_fork_label;
                 }
-                printf(column_prefix_str);
+                printf("%s", column_prefix_str);
                 printf("%s", forks_held);
 
                 switch (philosophers[i].state) {
                         case EATING:
-                                printf(eat_str);
+                                printf("%s", eat_str);
                                 break;
                         case THINKING:
-                                printf(think_str);
+                                printf("%s", think_str);
                                 break;
                         default:
-                                printf(change_str);
+                                printf("%s", change_str);
                                 break;
                 }
         }
-        printf(column_border_str);
+        printf("%s", column_border_str);
         printf("\n");
 }
 
@@ -359,12 +373,12 @@ void print_phil_labels(void)
 {
         int i;
         int j;
-        int label_len = LEADING_SPACE_LEN + NUM_PHILOSOPHERS 
+        int label_len = LEADING_SPACE_LEN + NUM_PHILOSOPHERS
                 + strlen(change_str) + NULL_CHAR_LEN;
         char label[label_len];
-        /* 
+        /*
          * index where the philosopher label should be
-         * centered in the column 
+         * centered in the column
          */
         int middle = label_len / 2 - 1;
 
@@ -374,7 +388,7 @@ void print_phil_labels(void)
         label[label_len - NULL_CHAR_LEN] = '\0';
 
         for (i = 0; i < NUM_PHILOSOPHERS; i++) {
-                label[middle] = 'A' + i;
+                label[middle] = wrapped_label(FIRST_PHIL_LABEL, i);
                 printf("%s%s", column_border_str, label);
         }
         printf("%s\n", column_border_str);
@@ -408,7 +422,25 @@ void print_table_border(char *header_border)
 }
 
 /*
- * Parses command-line arguments, 
+ * Outputs ascii label based off starting char
+ * and index of phil/fork
+ * wraps around ascii table safely
+ */
+char wrapped_label(char start, int index)
+{
+        /* start will be 'A' or '0' */
+        /* find where start is in the printable range */
+        int start_offset = start - FIRST_PRINTABLE;
+        /* move forward by index */
+        int unwrapped_offset = start_offset + index;
+        /* wrap around */
+        int wrapped_offset = unwrapped_offset % PRINTABLE_COUNT;
+
+        return FIRST_PRINTABLE + wrapped_offset;
+}
+
+/*
+ * Parses command-line arguments,
  * seeds random number generator,
  * inits philosopher data and semaphores,
  * creates philosopher threads, waits for threads,
@@ -424,13 +456,13 @@ int main(int argc, char *argv[])
         philinfo philosophers[NUM_PHILOSOPHERS];
         sem_t forks[NUM_PHILOSOPHERS];
         sem_t printing_lock;
-        
-        /* 
-         * one table column: 
-         * leading space + fork display width 
-         * + state width + '\0' 
+
+        /*
+         * one table column:
+         * leading space + fork display width
+         * + state width + '\0'
          */
-        int header_border_len = LEADING_SPACE_LEN + NUM_PHILOSOPHERS 
+        int header_border_len = LEADING_SPACE_LEN + NUM_PHILOSOPHERS
                 + strlen(change_str) + NULL_CHAR_LEN;
         char header_border[header_border_len];
 
@@ -514,6 +546,9 @@ int main(int argc, char *argv[])
         build_table_border(header_border, header_border_len);
         print_table_header(header_border);
 
+        /* print initial CHANGING row */
+        print_status_change(philosophers);
+
         /* create and run philosopher threads */
         for (i = 0; i < NUM_PHILOSOPHERS; i++) {
                 res = pthread_create(&philosophers[i].tid, NULL,
@@ -535,6 +570,12 @@ int main(int argc, char *argv[])
                                 "failed to join philosopher thread "
                                 "%d: %s\n",
                                 i, strerror(res));
+                        exit(EXIT_FAILURE);
+                }
+                if (phil_result_val == THREAD_FAILURE) {
+                        fprintf(stderr,
+                                "philosopher thread %d exited with failure\n",
+                                i);
                         exit(EXIT_FAILURE);
                 }
         }

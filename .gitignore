@@ -1,11 +1,13 @@
 outfile
 *.o
 pipeit
+dine
 .DS_Store
+*~
+TAGS
 *.jpg
 minix_3_1_8.vmdk
 testfloppy
 Asgn1/asgn1_soln.pdf
 Asgn2/asgn2_soln.pdf
 Lab01/lab01_soln.pdf
-

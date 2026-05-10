@@ -3,12 +3,13 @@ Name: Julia Lu (jlu97)
 Special instructions:
 N/A
 
-Other things: 
+Other things:
 
 
 Extra notes for me -
-why solution works: deadlock = no philosopher can eat because it needs the second fork, 
+why solution works: deadlock = no philosopher can eat because it needs
+the second fork,
 meaning that all philosophers are holding its first fork (looks like a circle),
-to break this circle, you could have just one philosopher's first fork choice 
+to break this circle, you could have just one philosopher's first fork choice
 pointing in the opposite direction, but for fairness/efficiency, the even
 odd rule distributes the chances of a philosopher eating more fairly
