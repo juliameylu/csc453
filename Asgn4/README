@@ -1,0 +1,18 @@
+Name: Julia Lu (jlu97)
+
+Special instructions:
+- On my MINIX setup, I built the driver in /usr/src/drivers/secrets.
+- Build the ioctl test with: cc -o grant_secret grant_secret.c
+- Run grant_secret with the UID to grant to, ex: ./grant_secret 13
+
+Changes made outside the driver:
+(mostly just followed the pdf)
+- Added the secret service to /etc/system.conf.
+- Created /dev/Secret with major 20 and minor 0.
+- Added ioc_secret.h for the SSGRANT ioctl.
+- Included ioc_secret.h from sys/ioctl.h.
+- Copied the ioctl header changes into /usr/include/sys/.
+
+Other notes:
+- DEBUG_ENABLED defaults to 0.
+- Assignment4Screenshots.pdf shows the driver working in MINIX.

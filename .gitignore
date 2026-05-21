@@ -1,4 +1,5 @@
 outfile
+agents.md
 *.o
 pipeit
 dine
@@ -7,6 +8,7 @@ dine
 TAGS
 *.jpg
 minix_3_1_8.vmdk
+Asgn4/floppy
 testfloppy
 Asgn1/asgn1_soln.pdf
 Asgn2/asgn2_soln.pdf
